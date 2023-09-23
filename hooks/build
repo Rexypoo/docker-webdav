@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Add metadata at build time
+# Credit to Nigel Brown
+# https://windsock.io/author/nigel/
+
+set -e
+
+BUILD_TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+# Build the base image with build-time args
+docker build \
+    --label org.opencontainers.image.created="${BUILD_TIMESTAMP}" \
+    --label org.opencontainers.image.version="${SOURCE_BRANCH}" \
+    --label org.opencontainers.image.revision="${SOURCE_COMMIT}" \
+    --label org.opencontainers.image.ref.name="${SOURCE_BRANCH}-alpine" \
+    -t $IMAGE_NAME .

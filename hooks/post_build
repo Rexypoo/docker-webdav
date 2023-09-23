@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Build additional targets
+
+set -e
+
+TARGETS='distroless debug'
+BUILD_TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+# Build each target
+build_target () {
+    docker build \
+        --label org.opencontainers.image.created="${BUILD_TIMESTAMP}" \
+        --label org.opencontainers.image.authors="docker-webdav@rexypoo.com" \
+        --label org.opencontainers.image.url="https://hub.docker.com/r/rexypoo/webdav" \
+        --label org.opencontainers.image.documentation="https://hub.docker.com/r/rexypoo/webdav" \
+        --label org.opencontainers.image.source="https://github.com/Rexypoo/docker-webdav" \
+        --label org.opencontainers.image.version="${SOURCE_BRANCH}" \
+        --label org.opencontainers.image.revision="${SOURCE_COMMIT}" \
+        --label org.opencontainers.image.vendor="rexypoo" \
+        --label org.opencontainers.image.licenses="MIT" \
+        --label org.opencontainers.image.ref.name="${SOURCE_BRANCH}-${TARGET}" \
+        --label org.opencontainers.image.title="rexypoo/webdav" \
+        --label org.opencontainers.image.description="A lightweight dead-simple webdav image." \
+        --label org.label-schema.docker.cmd="docker run -it --rm rexypoo/webdav <arguments>" \
+        --label org.label-schema.docker.cmd.debug="docker exec -it rexypoo/webdav sh" \
+        --label org.label-schema.docker.cmd.help="docker run -it --rm rexypoo/webdav --help" \
+        --target $TARGET \
+        -t ${TARGET} .
+    docker push ${TARGET}
+}
+
+for TARGET in $TARGETS; do
+    echo "Creating target: $TARGET"
+    build_target
+done
