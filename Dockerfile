@@ -7,6 +7,16 @@ RUN go mod init webdav.go \
  && go mod tidy \
  && CGO_ENABLED=0 go build webdav.go
 
+FROM gcr.io/distroless/static:nonroot AS distroless
+WORKDIR /
+COPY --from=build /build/webdav /usr/local/bin/webdav
+entrypoint ["webdav"]
+
+FROM gcr.io/distroless/static:debug AS debug
+WORKDIR /
+COPY --from=build /build/webdav /usr/local/bin/webdav
+entrypoint ["webdav"]
+
 FROM alpine AS clean
 WORKDIR /dav
 COPY --from=build /build/webdav /usr/local/bin/webdav
@@ -26,22 +36,12 @@ RUN adduser \
     --no-create-home \
     --uid "$UID" \
     "$USER" \
- && mkdir "$TEMPLATE" \
+ && mkdir -p "$TEMPLATE" \
  && chown -R "$USER":"$USER" .
 
 ADD https://raw.githubusercontent.com/Rexypoo/docker-entrypoint-helper/master/entrypoint-helper.sh /usr/local/bin/entrypoint-helper.sh
 RUN chmod u+x /usr/local/bin/entrypoint-helper.sh
 ENTRYPOINT ["entrypoint-helper.sh", "/usr/local/bin/webdav"]
-
-FROM gcr.io/distroless/static:nonroot AS distroless
-WORKDIR /
-COPY --from=build /build/webdav /usr/local/bin/webdav
-entrypoint ["webdav"]
-
-FROM gcr.io/distroless/static:debug AS debug
-WORKDIR /
-COPY --from=build /build/webdav /usr/local/bin/webdav
-entrypoint ["webdav"]
 
 # Build with 'docker build -t webdav .'
 LABEL org.opencontainers.image.url="https://hub.docker.com/r/rexypoo/webdav" \
